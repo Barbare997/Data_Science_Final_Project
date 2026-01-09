@@ -13,6 +13,14 @@ from typing import Optional, List
 import warnings
 warnings.filterwarnings('ignore')
 
+# Optional Plotly imports for interactive visualizations
+try:
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    PLOTLY_AVAILABLE = False
+
 # Set style
 sns.set_style("whitegrid")
 plt.rcParams['figure.figsize'] = (12, 6)
@@ -491,3 +499,265 @@ def create_summary_statistics_plot(df: pd.DataFrame,
     
     plt.show()
 
+
+# ============================================================================
+# Interactive Visualizations (Plotly)
+# ============================================================================
+
+def plot_time_series_interactive(df: pd.DataFrame,
+                                 date_column: str = 'date_time',
+                                 volume_column: str = 'traffic_volume') -> go.Figure:
+    """
+    Create interactive time series plot with zoom and pan capabilities.
+    
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input DataFrame
+    date_column : str, optional
+        Name of datetime column
+    volume_column : str, optional
+        Name of traffic volume column
+        
+    Returns
+    -------
+    go.Figure
+        Plotly figure object
+    """
+    if not PLOTLY_AVAILABLE:
+        raise ImportError("Plotly is required for interactive visualizations. Install with: pip install plotly")
+    
+    df_ts = df.copy()
+    df_ts = df_ts.sort_values(date_column)
+    
+    fig = make_subplots(
+        rows=2, cols=1,
+        subplot_titles=('Traffic Volume Over Time', 'Traffic with Rolling Average'),
+        vertical_spacing=0.1
+    )
+    
+    # Full time series
+    fig.add_trace(
+        go.Scatter(
+            x=df_ts[date_column],
+            y=df_ts[volume_column],
+            mode='lines',
+            name='Traffic Volume',
+            line=dict(color='steelblue', width=1),
+            opacity=0.7
+        ),
+        row=1, col=1
+    )
+    
+    # Rolling average
+    if len(df_ts) > 24:
+        window = min(24, len(df_ts) // 10)
+        df_ts['rolling_mean'] = df_ts[volume_column].rolling(window=window).mean()
+        
+        fig.add_trace(
+            go.Scatter(
+                x=df_ts[date_column],
+                y=df_ts[volume_column],
+                mode='lines',
+                name='Raw Data',
+                line=dict(color='lightblue', width=1),
+                opacity=0.3
+            ),
+            row=2, col=1
+        )
+        
+        fig.add_trace(
+            go.Scatter(
+                x=df_ts[date_column],
+                y=df_ts['rolling_mean'],
+                mode='lines',
+                name=f'{window}-Hour Rolling Average',
+                line=dict(color='darkblue', width=2)
+            ),
+            row=2, col=1
+        )
+    
+    fig.update_xaxes(title_text="Date", row=1, col=1)
+    fig.update_xaxes(title_text="Date", row=2, col=1)
+    fig.update_yaxes(title_text="Traffic Volume", row=1, col=1)
+    fig.update_yaxes(title_text="Traffic Volume", row=2, col=1)
+    
+    fig.update_layout(
+        title_text="Traffic Volume Time Series Analysis",
+        height=700,
+        hovermode='x unified'
+    )
+    
+    return fig
+
+
+def plot_correlation_heatmap_interactive(df: pd.DataFrame,
+                                         numeric_columns: Optional[List[str]] = None) -> go.Figure:
+    """
+    Create interactive correlation heatmap with hover details.
+    
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input DataFrame
+    numeric_columns : list, optional
+        List of numeric column names to include
+        
+    Returns
+    -------
+    go.Figure
+        Plotly figure object
+    """
+    if not PLOTLY_AVAILABLE:
+        raise ImportError("Plotly is required for interactive visualizations. Install with: pip install plotly")
+    
+    if numeric_columns is None:
+        numeric_columns = df.select_dtypes(include=[np.number]).columns.tolist()
+    
+    # Calculate correlation
+    corr_matrix = df[numeric_columns].corr()
+    
+    fig = go.Figure(data=go.Heatmap(
+        z=corr_matrix.values,
+        x=corr_matrix.columns,
+        y=corr_matrix.columns,
+        colorscale='RdBu',
+        zmid=0,
+        text=corr_matrix.values.round(2),
+        texttemplate='%{text}',
+        textfont={"size": 10},
+        colorbar=dict(title="Correlation"),
+        hovertemplate='<b>%{y}</b> vs <b>%{x}</b><br>Correlation: %{z:.3f}<extra></extra>'
+    ))
+    
+    fig.update_layout(
+        title_text="Feature Correlation Heatmap",
+        height=600,
+        xaxis_title="Features",
+        yaxis_title="Features"
+    )
+    
+    return fig
+
+
+def plot_temperature_vs_traffic_interactive(df: pd.DataFrame,
+                                            temp_column: str = 'temp',
+                                            volume_column: str = 'traffic_volume') -> go.Figure:
+    """
+    Create interactive scatter plot showing temperature vs traffic with zoom capabilities.
+    
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input DataFrame
+    temp_column : str, optional
+        Name of temperature column (assumed to be in Kelvin)
+    volume_column : str, optional
+        Name of traffic volume column
+        
+    Returns
+    -------
+    go.Figure
+        Plotly figure object
+    """
+    if not PLOTLY_AVAILABLE:
+        raise ImportError("Plotly is required for interactive visualizations. Install with: pip install plotly")
+    
+    # Filter out invalid temperature values
+    df_clean = df.copy()
+    df_clean = df_clean[(df_clean[temp_column] > 200) & (df_clean[temp_column] < 320)]
+    
+    if len(df_clean) == 0:
+        raise ValueError("No valid temperature data after filtering")
+    
+    # Convert temperature from Kelvin to Celsius
+    df_clean['temp_celsius'] = df_clean[temp_column] - 273.15
+    
+    fig = make_subplots(
+        rows=1, cols=2,
+        subplot_titles=('Temperature vs Traffic Volume', 'Traffic by Temperature Range'),
+        specs=[[{"type": "scatter"}, {"type": "box"}]]
+    )
+    
+    # Scatter plot
+    fig.add_trace(
+        go.Scatter(
+            x=df_clean['temp_celsius'],
+            y=df_clean[volume_column],
+            mode='markers',
+            name='Traffic',
+            marker=dict(
+                color=df_clean[volume_column],
+                colorscale='Viridis',
+                size=5,
+                opacity=0.6,
+                showscale=True,
+                colorbar=dict(title="Traffic Volume", x=1.15)
+            ),
+            hovertemplate='<b>Temperature:</b> %{x:.1f}°C<br>' +
+                         '<b>Traffic:</b> %{y:.0f} vehicles<br>' +
+                         '<extra></extra>'
+        ),
+        row=1, col=1
+    )
+    
+    # Add trend line
+    z = np.polyfit(df_clean['temp_celsius'], df_clean[volume_column], 1)
+    p = np.poly1d(z)
+    x_trend = np.linspace(df_clean['temp_celsius'].min(), df_clean['temp_celsius'].max(), 100)
+    y_trend = p(x_trend)
+    y_trend = np.maximum(y_trend, 0)
+    
+    fig.add_trace(
+        go.Scatter(
+            x=x_trend,
+            y=y_trend,
+            mode='lines',
+            name=f'Trend: y={z[0]:.2f}x+{z[1]:.0f}',
+            line=dict(color='red', width=2, dash='dash'),
+            hovertemplate='<b>Trend Line</b><extra></extra>'
+        ),
+        row=1, col=1
+    )
+    
+    # Boxplot by temperature bins
+    bins = [
+        df_clean['temp_celsius'].quantile(0),
+        df_clean['temp_celsius'].quantile(0.2),
+        df_clean['temp_celsius'].quantile(0.4),
+        df_clean['temp_celsius'].quantile(0.6),
+        df_clean['temp_celsius'].quantile(0.8),
+        df_clean['temp_celsius'].quantile(1.0)
+    ]
+    
+    labels = ['Very Cold', 'Cold', 'Moderate', 'Warm', 'Hot']
+    df_clean['temp_bin'] = pd.cut(df_clean['temp_celsius'], bins=bins, labels=labels, include_lowest=True)
+    
+    for temp_bin in labels:
+        bin_data = df_clean[df_clean['temp_bin'] == temp_bin][volume_column]
+        if len(bin_data) > 0:
+            fig.add_trace(
+                go.Box(
+                    y=bin_data,
+                    name=temp_bin,
+                    boxmean='sd',
+                    hovertemplate=f'<b>{temp_bin}</b><br>' +
+                                 '<b>Traffic:</b> %{y:.0f} vehicles<br>' +
+                                 '<extra></extra>'
+                ),
+                row=1, col=2
+            )
+    
+    fig.update_xaxes(title_text="Temperature (°C)", row=1, col=1)
+    fig.update_xaxes(title_text="Temperature Range", row=1, col=2)
+    fig.update_yaxes(title_text="Traffic Volume", row=1, col=1)
+    fig.update_yaxes(title_text="Traffic Volume", row=1, col=2)
+    
+    fig.update_layout(
+        title_text="Temperature Impact on Traffic",
+        height=500,
+        showlegend=True,
+        hovermode='closest'
+    )
+    
+    return fig

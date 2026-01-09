@@ -2,8 +2,9 @@
 
 ## Dataset Overview
 
-**Source**: UCI ML Repository / Kaggle  
 **Dataset Name**: Metro Interstate Traffic Volume Dataset  
+**Location**: `data/raw/Metro_Interstate_Traffic_Volume.csv`  
+**Original Source**: UCI ML Repository / Kaggle  
 **Description**: Hourly traffic volume data for I-94 Westbound traffic, including weather and temporal features.
 
 ## Column Descriptions
@@ -77,6 +78,6 @@
 
 ## References
 
-- Original Dataset: [UCI ML Repository](https://archive.ics.uci.edu/ml/index.php)
-- Kaggle: [Metro Interstate Traffic Volume](https://www.kaggle.com/datasets)
+- Dataset location: `data/raw/Metro_Interstate_Traffic_Volume.csv`
+- Original sources: [UCI ML Repository](https://archive.ics.uci.edu/ml/index.php) or [Kaggle](https://www.kaggle.com/datasets)
 

@@ -6,7 +6,6 @@ Interactive Streamlit dashboard for exploring traffic volume data.
 
 import streamlit as st
 import pandas as pd
-import numpy as np
 from pathlib import Path
 import sys
 
@@ -15,15 +14,10 @@ current_dir = Path(__file__).parent
 if str(current_dir) not in sys.path:
     sys.path.insert(0, str(current_dir))
 
-from src.interactive_visualization import (
-    plot_traffic_distribution_interactive,
-    plot_traffic_by_weekday_interactive,
+from src.visualization import (
     plot_time_series_interactive,
-    plot_congestion_by_hour_interactive,
-    plot_weather_impact_interactive,
     plot_temperature_vs_traffic_interactive,
-    plot_correlation_heatmap_interactive,
-    plot_rush_hour_comparison_interactive
+    plot_correlation_heatmap_interactive
 )
 
 # Page configuration
@@ -142,74 +136,94 @@ if df is not None:
     st.markdown("---")
     
     # Visualization tabs
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-        "📊 Distribution", 
-        "📅 Time Analysis", 
-        "⏰ Hourly Patterns",
-        "🌤️ Weather Impact",
-        "🌡️ Temperature",
-        "🔗 Correlations"
+    tab1, tab2, tab3 = st.tabs([
+        "📅 Time Series Analysis", 
+        "🌡️ Temperature vs Traffic",
+        "🔗 Feature Correlations"
     ])
     
     with tab1:
-        st.header("Traffic Volume Distribution")
-        fig = plot_traffic_distribution_interactive(df)
-        st.plotly_chart(fig, use_container_width=True)
-        
-        st.subheader("Rush Hour Comparison")
-        fig_rush = plot_rush_hour_comparison_interactive(df)
-        st.plotly_chart(fig_rush, use_container_width=True)
-    
-    with tab2:
-        st.header("Time Series Analysis")
+        st.header("Traffic Volume Time Series")
+        st.write("Interactive time series plot with zoom and pan capabilities. Explore traffic patterns over time.")
         fig = plot_time_series_interactive(df)
         st.plotly_chart(fig, use_container_width=True)
         
-        st.subheader("Traffic by Day of Week")
-        fig_weekday = plot_traffic_by_weekday_interactive(df)
-        st.plotly_chart(fig_weekday, use_container_width=True)
+        # Temporal pattern insights
+        st.subheader("📌 Temporal Pattern Insights")
+        if 'is_rush_hour' in df.columns and 'hour' in df.columns:
+            rush_hours = df[df['is_rush_hour'] == 1]
+            non_rush = df[df['is_rush_hour'] == 0]
+            rush_avg = rush_hours['traffic_volume'].mean()
+            non_rush_avg = non_rush['traffic_volume'].mean()
+            rush_pct = ((rush_avg - non_rush_avg) / non_rush_avg) * 100
+            
+            hourly_avg = df.groupby('hour')['traffic_volume'].mean()
+            peak_hour = hourly_avg.idxmax()
+            peak_volume = hourly_avg.max()
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Rush Hour Traffic", f"{rush_avg:,.0f}", f"{rush_pct:.1f}% higher")
+            with col2:
+                st.metric("Peak Hour", f"{peak_hour}:00", f"{peak_volume:,.0f} vehicles")
+            with col3:
+                hourly_range = hourly_avg.max() - hourly_avg.min()
+                st.metric("Hourly Variation", f"{hourly_range:,.0f}", "vehicles range")
+        else:
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Total Observations", f"{len(df):,}")
+            with col2:
+                st.metric("Average Traffic", f"{df['traffic_volume'].mean():,.0f}")
+            with col3:
+                st.metric("Peak Traffic", f"{df['traffic_volume'].max():,.0f}")
     
-    with tab3:
-        st.header("Hourly Traffic Patterns")
-        fig = plot_congestion_by_hour_interactive(df)
-        st.plotly_chart(fig, use_container_width=True)
-        
-        # Additional insights
-        st.subheader("📌 Insights")
-        hourly_avg = df.groupby('hour')['traffic_volume'].mean().sort_values(ascending=False)
-        top_hours = hourly_avg.head(3)
-        
-        col1, col2, col3 = st.columns(3)
-        for i, (hour, volume) in enumerate(top_hours.items()):
-            with [col1, col2, col3][i]:
-                st.metric(f"Peak Hour {hour}:00", f"{volume:,.0f}")
-    
-    with tab4:
-        st.header("Weather Impact on Traffic")
-        fig = plot_weather_impact_interactive(df)
-        st.plotly_chart(fig, use_container_width=True)
-        
-        # Weather statistics
-        if 'weather_main' in df.columns:
-            st.subheader("Weather Statistics")
-            weather_stats = df.groupby('weather_main')['traffic_volume'].agg(['mean', 'count']).round(0)
-            weather_stats.columns = ['Avg Traffic', 'Count']
-            weather_stats = weather_stats.sort_values('Avg Traffic', ascending=False)
-            st.dataframe(weather_stats, use_container_width=True)
-    
-    with tab5:
-        st.header("Temperature vs Traffic")
+    with tab2:
+        st.header("Temperature vs Traffic Volume")
+        st.write("Interactive scatter plot showing the relationship between temperature and traffic patterns.")
         if 'temp' in df.columns:
             fig = plot_temperature_vs_traffic_interactive(df)
             st.plotly_chart(fig, use_container_width=True)
             
-            # Temperature conversion info
-            st.info("💡 Temperature is in Kelvin. To convert: Celsius = Kelvin - 273.15")
+            # Temperature and weather insights
+            st.subheader("📌 Temperature & Weather Insights")
+            temp_celsius = df['temp'] - 273.15
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Avg Temperature", f"{temp_celsius.mean():.1f}°C", 
+                         f"Range: {temp_celsius.min():.0f}°C - {temp_celsius.max():.0f}°C")
+            
+            if 'weather_main' in df.columns:
+                adverse_weather = ['Rain', 'Snow', 'Thunderstorm', 'Drizzle', 'Mist', 'Fog']
+                clear_weather = ['Clear', 'Clouds']
+                
+                adverse_avg = df[df['weather_main'].isin(adverse_weather)]['traffic_volume'].mean()
+                clear_avg = df[df['weather_main'].isin(clear_weather)]['traffic_volume'].mean()
+                
+                if len(df[df['weather_main'].isin(adverse_weather)]) > 0:
+                    weather_reduction = ((clear_avg - adverse_avg) / clear_avg) * 100
+                    with col2:
+                        st.metric("Weather Impact", f"{weather_reduction:.1f}%", 
+                                 "reduction in adverse weather")
+                    with col3:
+                        st.metric("Clear Weather Avg", f"{clear_avg:,.0f}", "vehicles")
+                else:
+                    with col2:
+                        st.metric("Avg Temp", f"{temp_celsius.mean():.1f}°C")
+                    with col3:
+                        st.metric("Max Temp", f"{temp_celsius.max():.1f}°C")
+            else:
+                with col2:
+                    st.metric("Min Temp", f"{temp_celsius.min():.1f}°C")
+                with col3:
+                    st.metric("Max Temp", f"{temp_celsius.max():.1f}°C")
         else:
             st.warning("Temperature data not available")
     
-    with tab6:
-        st.header("Feature Correlations")
+    with tab3:
+        st.header("Feature Correlation Heatmap")
+        st.write("Interactive correlation matrix showing relationships between numeric features. Hover for exact values.")
         numeric_cols = ['traffic_volume', 'temp', 'rain_1h', 'snow_1h', 'clouds_all',
                        'hour', 'day_of_week', 'is_weekend', 'is_rush_hour']
         available_cols = [col for col in numeric_cols if col in df.columns]
@@ -217,6 +231,15 @@ if df is not None:
         if len(available_cols) > 1:
             fig = plot_correlation_heatmap_interactive(df, numeric_columns=available_cols)
             st.plotly_chart(fig, use_container_width=True)
+            
+            # Correlation insights
+            st.subheader("📌 Key Correlations")
+            corr_matrix = df[available_cols].corr()
+            traffic_corr = corr_matrix['traffic_volume'].sort_values(ascending=False)
+            top_corr = traffic_corr[traffic_corr.index != 'traffic_volume'].head(3)
+            
+            for feature, corr_value in top_corr.items():
+                st.write(f"**{feature}**: {corr_value:.3f}")
         else:
             st.warning("Not enough numeric columns for correlation analysis")
     

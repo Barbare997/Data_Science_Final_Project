@@ -1,14 +1,7 @@
 """
-Path setup helper for Jupyter notebooks in PyCharm.
+Path setup for Jupyter notebooks.
 
-This module helps notebooks find the src directory regardless of where they're run from.
-Import this at the beginning of your notebook:
-
-    from setup_path import setup_project_path
-    setup_project_path()
-    
-Then you can import from src normally:
-    from src.data_processing import load_data
+Helps notebooks find the src directory.
 """
 
 import sys
@@ -18,7 +11,6 @@ from pathlib import Path
 def setup_project_path():
     """
     Add project root to Python path so notebooks can import from src.
-    Works in both PyCharm and regular Jupyter.
     """
     current_dir = Path().resolve()
     

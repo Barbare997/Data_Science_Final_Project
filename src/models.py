@@ -10,11 +10,10 @@ import numpy as np
 from typing import Tuple, Optional
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (accuracy_score, confusion_matrix, 
-                            precision_score, recall_score, f1_score,
-                            classification_report)
+                            precision_score, recall_score, f1_score)
 import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings('ignore')

@@ -7,7 +7,8 @@
 **Urban Pulse** is a data science project that analyzes urban traffic data to understand congestion patterns, identify traffic stress periods, and predict high-congestion vs low-congestion situations. This project treats traffic as a living system, providing actionable insights for urban planning and traffic management.
 
 ### Team Members
-- Barbare Pantskhava, Tamar Shonia
+- Tamar Shonia
+- Barbare Pantskhava
 
 ### Problem Statement
 
@@ -28,9 +29,9 @@ Traffic congestion is a critical urban challenge affecting millions of people da
 ##  Dataset
 
 ### Source
-- **Primary Dataset**: Traffic Volume Dataset (UCI ML Repository / Kaggle)
-- **Dataset Name**: Metro Interstate Traffic Volume Dataset
-- **Link**: Available on [Kaggle](https://www.kaggle.com/datasets) or [UCI ML Repository](https://archive.ics.uci.edu/ml/index.php)
+- **Primary Dataset**: Metro Interstate Traffic Volume Dataset
+- **Location**: Included in `data/raw/Metro_Interstate_Traffic_Volume.csv`
+- **Original Source**: UCI ML Repository / Kaggle
 
 ### Features
 - `traffic_volume`: Hourly traffic volume (target variable)
@@ -45,9 +46,7 @@ Traffic congestion is a critical urban challenge affecting millions of people da
 - `month`, `day`, `hour`: Temporal features
 
 ### Data Acquisition
-1. Download the dataset from Kaggle or UCI ML Repository
-2. Place the raw CSV file in `data/raw/` directory
-3. The preprocessing pipeline will handle the rest
+The dataset is already included in the project at `data/raw/Metro_Interstate_Traffic_Volume.csv`. The preprocessing pipeline will handle the rest.
 
 ---
 
@@ -59,11 +58,9 @@ Traffic congestion is a critical urban challenge affecting millions of people da
 
 ### Installation Steps
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd DS_Final_Project
-   ```
+1. **Extract the project**
+   - Extract the zip file to your desired location
+   - Navigate to the project directory
 
 2. **Create a virtual environment** (recommended)
    ```bash
@@ -81,12 +78,7 @@ Traffic congestion is a critical urban challenge affecting millions of people da
    pip install -r requirements.txt
    ```
 
-4. **Download the dataset**
-   - Download the traffic volume dataset from Kaggle/UCI
-   - Place it in `data/raw/` directory
-   - Ensure the file is named appropriately (e.g., `traffic_volume.csv`)
-
-5. **Launch Jupyter Notebook**
+4. **Launch Jupyter Notebook**
    ```bash
    jupyter notebook
    ```
@@ -100,7 +92,7 @@ DS_Final_Project/
 │
 ├── data/
 │   ├── raw/                    # Original, immutable data
-│   │   └── traffic_volume.csv  # Raw dataset (not in repo)
+│   │   └── Metro_Interstate_Traffic_Volume.csv  # Raw dataset
 │   └── processed/              # Cleaned, transformed data
 │       └── traffic_cleaned.csv # Processed dataset
 │
@@ -114,15 +106,13 @@ DS_Final_Project/
 ├── src/
 │   ├── __init__.py
 │   ├── data_processing.py          # Data cleaning functions
-│   ├── visualization.py            # Static plotting functions (Matplotlib)
-│   ├── interactive_visualization.py # Interactive plotting functions (Plotly)
+│   ├── visualization.py            # Static and interactive plotting functions
 │   └── models.py                   # ML model implementations
 │
 ├── dashboard.py                    # Streamlit interactive dashboard
 │
 ├── reports/
-│   ├── figures/                # Generated visualizations
-│   └── results/                # Model outputs, metrics
+│   └── figures/                # Generated visualizations and model outputs
 │
 ├── README.md                   # This file
 ├── CONTRIBUTIONS.md            # Team member contributions
@@ -134,7 +124,7 @@ DS_Final_Project/
 
 ##  Usage
 
-### Running the Complete Pipeline
+### Running the Pipeline
 
 1. **Data Exploration** (`notebooks/01_data_exploration.ipynb`)
    - Load and inspect raw data
@@ -159,9 +149,10 @@ DS_Final_Project/
    - Generate predictions
 
 5. **Interactive Visualizations** (`notebooks/05_interactive_visualizations.ipynb`)
-   - Create interactive Plotly visualizations
-   - Explore data with zoom, pan, and hover features
-   - Export visualizations for reports
+   - Demonstrates three interactive Plotly visualizations
+   - Time series with zoom and pan
+   - Temperature vs traffic scatter plot
+   - Correlation heatmap with hover details
 
 6. **Interactive Dashboard** (`dashboard.py`)
    - Run Streamlit dashboard: `streamlit run dashboard.py`
@@ -175,7 +166,7 @@ from src.data_processing import load_and_clean_data
 from src.models import train_logistic_regression, train_decision_tree
 
 # Load and clean data
-df = load_and_clean_data('data/raw/traffic_volume.csv')
+df = load_and_clean_data('data/raw/Metro_Interstate_Traffic_Volume.csv')
 
 # Train models
 lr_model, lr_metrics = train_logistic_regression(df)
@@ -362,11 +353,10 @@ This project is for educational purposes as part of the Data Science with Python
 
 ##  Future Work
 
-- Implement additional models (Random Forest, XGBoost)
-- Create interactive dashboard using Streamlit
 - Add real-time prediction capabilities
 - Expand to multiple cities for comparative analysis
 - Incorporate additional features (events, construction, accidents)
+- Implement XGBoost or other advanced models
 
 ---
 

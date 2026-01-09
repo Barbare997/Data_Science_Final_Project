@@ -41,7 +41,7 @@ def load_data(file_path: str) -> pd.DataFrame:
 
 def inspect_data(df: pd.DataFrame) -> dict:
     """
-    Generate a comprehensive data quality report.
+    Generate a data quality report.
     
     Parameters
     ----------
@@ -122,7 +122,11 @@ def handle_missing_values(df: pd.DataFrame,
         if df_clean[col].isnull().sum() > 0:
             before = df_clean[col].isnull().sum()
             
-            if strategy == 'forward_fill':
+            # Special handling for holiday column: use "None" instead of forward fill
+            # Holidays are single-day events, so forward fill incorrectly propagates them
+            if col == 'holiday':
+                df_clean[col].fillna('None', inplace=True)
+            elif strategy == 'forward_fill':
                 df_clean[col].ffill(inplace=True)
                 df_clean[col].bfill(inplace=True)  # Fill remaining with backward fill
             elif strategy == 'mean':
@@ -139,7 +143,7 @@ def handle_missing_values(df: pd.DataFrame,
                 df_clean = df_clean.dropna(subset=[col])
             
             after = df_clean[col].isnull().sum()
-            print(f"  {col}: {before} → {after} missing values")
+            print(f"  {col}: {before} -> {after} missing values")
     
     return df_clean
 
@@ -297,9 +301,37 @@ def create_rush_hour_feature(df: pd.DataFrame,
     return df_feat
 
 
+def create_holiday_feature(df: pd.DataFrame,
+                          holiday_column: str = 'holiday') -> pd.DataFrame:
+    """
+    Create binary holiday feature from holiday column.
+    
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input DataFrame
+    holiday_column : str, optional
+        Name of the holiday column (default: 'holiday')
+        
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with is_holiday binary feature added
+    """
+    df_feat = df.copy()
+    
+    # Create binary feature: 1 if holiday, 0 if None
+    df_feat['is_holiday'] = (df_feat[holiday_column] != 'None').astype(int)
+    
+    holiday_count = df_feat['is_holiday'].sum()
+    print(f"✓ Created is_holiday feature: {holiday_count} holiday observations")
+    
+    return df_feat
+
+
 def create_traffic_stress_level(df: pd.DataFrame, 
-                               volume_column: str = 'traffic_volume',
-                               method: str = 'quantile') -> pd.DataFrame:
+                                volume_column: str = 'traffic_volume',
+                                method: str = 'quantile') -> pd.DataFrame:
     """
     Create traffic stress level classification (Low/Medium/High).
     
@@ -396,7 +428,7 @@ def preprocess_pipeline(df: pd.DataFrame,
                        missing_strategy: str = 'forward_fill',
                        outlier_method: str = 'cap') -> Tuple[pd.DataFrame, dict]:
     """
-    Complete preprocessing pipeline for traffic data.
+    Preprocessing pipeline for traffic data.
     
     Parameters
     ----------
@@ -436,6 +468,7 @@ def preprocess_pipeline(df: pd.DataFrame,
     
     # Step 5: Create derived features
     df_processed = create_rush_hour_feature(df_processed)
+    df_processed = create_holiday_feature(df_processed)
     df_processed = create_traffic_stress_level(df_processed, volume_column=target_column)
     
     # Step 6: Final inspection
@@ -449,7 +482,8 @@ def preprocess_pipeline(df: pd.DataFrame,
         'missing_values_after': final_report['missing_values'],
         'features_created': [
             'year', 'month', 'day', 'hour', 'day_of_week', 'is_weekend',
-            'is_rush_hour', 'rush_hour_type', 'traffic_stress_level', 'is_congested'
+            'is_rush_hour', 'rush_hour_type', 'is_holiday', 
+            'traffic_stress_level', 'is_congested'
         ]
     }
     
@@ -466,7 +500,7 @@ def preprocess_pipeline(df: pd.DataFrame,
 
 def load_and_clean_data(file_path: str) -> pd.DataFrame:
     """
-    Convenience function to load and clean data in one step.
+    Load and clean data in one step.
     
     Parameters
     ----------

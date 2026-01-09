@@ -3,18 +3,18 @@
 ## Project: Urban Pulse – Predicting City Traffic Stress
 
 ### Team Members
-- Barbare Pantskhava
 - Tamar Shonia
+- Barbare Pantskhava
 
 ---
 
 ## Contribution Breakdown
 
-### [Team Member 1 Name]
+### Tamar Shonia
 **Role**: Data Engineer / Preprocessing Specialist
 
 **Contributions**:
-- Set up project structure and repository
+- Set up project structure
 - Implemented data preprocessing pipeline (`src/data_processing.py`)
 - Created data cleaning functions with error handling for file loading and input validation
 - Developed feature engineering logic (rush hour detection, day type classification, traffic stress levels)
@@ -40,35 +40,31 @@
 
 ---
 
-### [Team Member 2 Name]
+### Barbare Pantskhava
 **Role**: ML Engineer / Visualization Specialist
 
 **Contributions**:
-- Created interactive visualization functions using Plotly (`src/interactive_visualization.py`)
+- Added interactive visualization functions to visualization module (Plotly)
 - Created `notebooks/05_interactive_visualizations.ipynb`
 - Implemented Logistic Regression model
 - Implemented Decision Tree model
 - Implemented Random Forest model (bonus third model)
-- Conducted comprehensive model evaluation and comparison
+- Conducted model evaluation and comparison
 - Created model utility functions (`src/models.py`)
 - Created `notebooks/04_machine_learning.ipynb`
 - Generated model performance reports and metrics
 - Developed Streamlit interactive dashboard (`dashboard.py`)
-- Created comprehensive README.md with results and methodology
-- Created project documentation (`PROJECT_SUMMARY.md`, `QUICKSTART.md`)
+- Created README.md with results and methodology
 - Ensured code quality and PEP 8 compliance
 
 **Files Modified/Created**:
-- `src/interactive_visualization.py`
+- `src/visualization.py` (added interactive functions)
 - `src/models.py`
 - `dashboard.py`
 - `notebooks/04_machine_learning.ipynb`
 - `notebooks/05_interactive_visualizations.ipynb`
 - `README.md` (main documentation)
-- `PROJECT_SUMMARY.md`
-- `QUICKSTART.md`
-- `reports/figures/` (interactive visualization outputs)
-- `reports/results/` (model outputs)
+- `reports/figures/` (interactive visualization outputs and model outputs)
 
 ---
 
@@ -85,13 +81,13 @@
 - Verified integration between data processing and analysis components
 
 ### Workflow
-- **Phase 1**: Team Member 1 focused on data exploration and preprocessing pipeline
-- **Phase 2**: Team Member 1 created static visualizations while Team Member 2 began ML model development
-- **Phase 3**: Team Member 2 completed ML models, interactive visualizations, and dashboard
+- **Phase 1**: Tamar Shonia focused on data exploration and preprocessing pipeline
+- **Phase 2**: Tamar Shonia created static visualizations while Barbare Pantskhava began ML model development
+- **Phase 3**: Barbare Pantskhava completed ML models, interactive visualizations, and dashboard
 - **Integration**: Both members collaborated on final documentation and project integration
 
 ### Challenges Overcome
-- Coordinated data preprocessing output format to ensure compatibility with visualization and modeling functions
-- Integrated static and interactive visualization modules to work with same data pipeline
+- Coordinated data preprocessing output format for compatibility with visualization and modeling functions
+- Integrated static and interactive visualizations in same module
 - Ensured consistent feature engineering between preprocessing and model training
 

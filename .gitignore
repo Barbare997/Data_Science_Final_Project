@@ -45,8 +45,7 @@ data/raw/*.csv
 data/raw/*.xlsx
 
 # Keep structure but ignore large files
-!data/raw/.gitkeep
-!data/processed/.gitkeep
+# (Note: .gitkeep files removed as directories now contain files)
 
 # OS
 .DS_Store
